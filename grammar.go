@@ -9,7 +9,7 @@ import (
 )
 
 type Result struct {
-	Run Run
+	Run      Run
 	Children []*Result
 }
 
@@ -25,7 +25,7 @@ func (r *Result) stringIndent(indent int, b *bytes.Buffer) {
 		return
 	}
 	b.WriteString(fmt.Sprintf("%s%d %d\n", strings.Repeat("\t", indent), r.Run.Start, r.Run.End))
-	for _, c := range(r.Children) {
+	for _, c := range r.Children {
 		c.stringIndent(indent+1, b)
 	}
 }
@@ -36,7 +36,7 @@ type Component interface {
 
 func Literal(s string) Component {
 	prefix := []byte(s)
-	f := func (buf *Buffer) (*Result, error) {
+	f := func(buf *Buffer) (*Result, error) {
 		buf.Backup()
 		if buf.ConsumePrefix(prefix) {
 			return &Result{Run: buf.Commit()}, nil
@@ -48,7 +48,7 @@ func Literal(s string) Component {
 }
 
 func Rune(chars string) Component {
-	f := func (buf *Buffer) (*Result, error) {
+	f := func(buf *Buffer) (*Result, error) {
 		buf.Backup()
 		if r, ok := buf.ConsumeRune(); ok {
 			for _, ch := range chars {
@@ -64,10 +64,10 @@ func Rune(chars string) Component {
 
 func Dict(dict []string) Component {
 	t := trie.NewTrie()
-	for _, key := range(dict) {
+	for _, key := range dict {
 		t.Add([]byte(key), nil)
 	}
-	f := func (buf *Buffer) (*Result, error) {
+	f := func(buf *Buffer) (*Result, error) {
 		buf.Backup()
 		if buf.ConsumeTrie(t) {
 			return &Result{Run: buf.Commit()}, nil
@@ -82,7 +82,7 @@ func Regexp(re string) Component {
 		re = "^" + re
 	}
 	reg := regexp.MustCompile(re)
-	f := func (buf *Buffer) (*Result, error) {
+	f := func(buf *Buffer) (*Result, error) {
 		buf.Backup()
 		if buf.ConsumeRegexp(reg) {
 			return &Result{Run: buf.Commit()}, nil
@@ -93,7 +93,7 @@ func Regexp(re string) Component {
 }
 
 func Repeat(c Component) Component {
-	f := func (buf *Buffer) (*Result, error) {
+	f := func(buf *Buffer) (*Result, error) {
 		buf.Backup()
 		allResult := &Result{}
 		for {
@@ -114,7 +114,7 @@ func Repeat(c Component) Component {
 }
 
 func Option(c Component) Component {
-	f := func (buf *Buffer) (*Result, error) {
+	f := func(buf *Buffer) (*Result, error) {
 		buf.Backup()
 		result, err := c.Parse(buf)
 		if err != nil {
@@ -128,10 +128,10 @@ func Option(c Component) Component {
 }
 
 func Cat(components ...Component) Component {
-	f := func (buf *Buffer) (*Result, error) {
+	f := func(buf *Buffer) (*Result, error) {
 		buf.Backup()
 		allResult := &Result{}
-		for _, c := range(components) {
+		for _, c := range components {
 			result, err := c.Parse(buf)
 			if err != nil {
 				return nil, buf.Restore()
@@ -145,17 +145,17 @@ func Cat(components ...Component) Component {
 }
 
 func Alter(alts ...Component) Component {
-	f := func (buf *Buffer) (*Result, error) {
+	f := func(buf *Buffer) (*Result, error) {
 		var err error
 		var result *Result
-		for _, c := range(alts) {
+		for _, c := range alts {
 			buf.Backup()
 			result, err = c.Parse(buf)
 			if err == nil {
 				buf.Commit()
 				return result, nil
 			}
-			err = buf.Restore();
+			err = buf.Restore()
 		}
 		return nil, err
 	}

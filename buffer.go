@@ -13,14 +13,14 @@ type Run struct {
 }
 
 type Buffer struct {
-	input []byte
-	pos int
+	input   []byte
+	pos     int
 	backPos []int
 }
 
 func NewBuffer(input []byte) *Buffer {
 	return &Buffer{
-		input: input,
+		input:   input,
 		backPos: make([]int, 0, 10),
 	}
 }
