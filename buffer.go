@@ -48,6 +48,10 @@ func (b *Buffer) Commit() Run {
 	return run
 }
 
+func (b *Buffer) Run(r Run) string {
+	return b.input[r.Start:r.End]
+}
+
 func (b *Buffer) ConsumePrefix(prefix string) bool {
 	if b.End() {
 		return false
