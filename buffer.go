@@ -1,10 +1,10 @@
 package parser
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/saintfish/trie.go"
 	"regexp"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -13,12 +13,12 @@ type Run struct {
 }
 
 type Buffer struct {
-	input   []byte
+	input   string
 	pos     int
 	backPos []int
 }
 
-func NewBuffer(input []byte) *Buffer {
+func NewBuffer(input string) *Buffer {
 	return &Buffer{
 		input:   input,
 		backPos: make([]int, 0, 10),
@@ -48,11 +48,11 @@ func (b *Buffer) Commit() Run {
 	return run
 }
 
-func (b *Buffer) ConsumePrefix(prefix []byte) bool {
+func (b *Buffer) ConsumePrefix(prefix string) bool {
 	if b.End() {
 		return false
 	}
-	if bytes.HasPrefix(b.input[b.pos:], prefix) {
+	if strings.HasPrefix(b.input[b.pos:], prefix) {
 		b.pos += len(prefix)
 		return true
 	}
@@ -63,7 +63,7 @@ func (b *Buffer) ConsumeRune() (rune, bool) {
 	if b.End() {
 		return 0, false
 	}
-	r, size := utf8.DecodeRune(b.input[b.pos:])
+	r, size := utf8.DecodeRuneInString(b.input[b.pos:])
 	b.pos += size
 	return r, true
 }
@@ -72,7 +72,8 @@ func (b *Buffer) ConsumeTrie(t *trie.Trie) bool {
 	if b.End() {
 		return false
 	}
-	if m, found := t.MatchLongestPrefix(b.input[b.pos:]); found {
+	// TODO: Let trie to support matching string directly
+	if m, found := t.MatchLongestPrefix([]byte(b.input[b.pos:])); found {
 		b.pos += len(m.Prefix)
 		return true
 	}
@@ -83,10 +84,10 @@ func (b *Buffer) ConsumeRegexp(r *regexp.Regexp) bool {
 	if b.End() {
 		return false
 	}
-	match := r.Find(b.input[b.pos:])
-	if match == nil {
+	index := r.FindStringIndex(b.input[b.pos:])
+	if index == nil {
 		return false
 	}
-	b.pos += len(match)
+	b.pos += (index[1] - index[0])
 	return true
 }

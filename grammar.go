@@ -34,8 +34,7 @@ type Component interface {
 	Parse(buf *Buffer) (*Result, error)
 }
 
-func Literal(s string) Component {
-	prefix := []byte(s)
+func Literal(prefix string) Component {
 	f := func(buf *Buffer) (*Result, error) {
 		buf.Backup()
 		if buf.ConsumePrefix(prefix) {

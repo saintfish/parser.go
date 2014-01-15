@@ -1,6 +1,6 @@
 package parser
 
 func ParseString(input string, c Component) (*Result, error) {
-	b := NewBuffer([]byte(input))
+	b := NewBuffer(input)
 	return c.Parse(b)
 }
