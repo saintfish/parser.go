@@ -64,7 +64,7 @@ func TestParse(t *testing.T) {
 		number, Cat(Literal("("), spaces, expr, spaces, Literal(")"))))
 
 	input := "1 + 2 * (3 * 4 + (5)) + 6"
-	v, err := ParseString(input, expr)
+	v, err := ParseString(input, 0, expr)
 	if err != nil {
 		t.Error(err)
 	}

@@ -18,9 +18,13 @@ type Buffer struct {
 	backPos []int
 }
 
-func NewBuffer(input string) *Buffer {
+func newBuffer(input string, pos int) *Buffer {
+	if pos > len(input) {
+		pos = len(input)
+	}
 	return &Buffer{
 		input:   input,
+		pos:     pos,
 		backPos: make([]int, 0, 10),
 	}
 }
@@ -53,9 +57,6 @@ func (b *Buffer) Run(r Run) string {
 }
 
 func (b *Buffer) ConsumePrefix(prefix string) bool {
-	if b.End() {
-		return false
-	}
 	if strings.HasPrefix(b.input[b.pos:], prefix) {
 		b.pos += len(prefix)
 		return true
@@ -73,9 +74,6 @@ func (b *Buffer) ConsumeRune() (rune, bool) {
 }
 
 func (b *Buffer) ConsumeTrie(t *trie.Trie) bool {
-	if b.End() {
-		return false
-	}
 	// TODO: Let trie to support matching string directly
 	if m, found := t.MatchLongestPrefix([]byte(b.input[b.pos:])); found {
 		b.pos += len(m.Prefix)
@@ -85,9 +83,6 @@ func (b *Buffer) ConsumeTrie(t *trie.Trie) bool {
 }
 
 func (b *Buffer) ConsumeRegexp(r *regexp.Regexp) bool {
-	if b.End() {
-		return false
-	}
 	index := r.FindStringIndex(b.input[b.pos:])
 	if index == nil {
 		return false
