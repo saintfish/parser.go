@@ -72,8 +72,24 @@ func HandleDict(handler SingletonHandler, dict ...string) Component {
 	}
 	f := func(buf *Buffer) (Value, error) {
 		buf.Backup()
-		if buf.ConsumeTrie(t) {
+		if _, ok := buf.ConsumeTrie(t); ok {
 			return handler(buf, buf.Commit()), nil
+		}
+		return nil, buf.Restore()
+	}
+	return &generalComponent{f: f}
+}
+
+func HandleTrie(handler func(buf *Buffer, r Run, v trie.Value) Value, t *trie.Trie) Component {
+	if handler == nil {
+		handler = func(buf *Buffer, r Run, v trie.Value) Value {
+			return v
+		}
+	}
+	f := func(buf *Buffer) (Value, error) {
+		buf.Backup()
+		if vv, ok := buf.ConsumeTrie(t); ok {
+			return handler(buf, buf.Commit(), vv), nil
 		}
 		return nil, buf.Restore()
 	}

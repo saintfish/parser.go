@@ -73,13 +73,12 @@ func (b *Buffer) ConsumeRune() (rune, bool) {
 	return r, true
 }
 
-func (b *Buffer) ConsumeTrie(t *trie.Trie) bool {
-	// TODO: Let trie to support matching string directly
-	if m, found := t.MatchLongestPrefix([]byte(b.input[b.pos:])); found {
-		b.pos += len(m.Prefix)
-		return true
+func (b *Buffer) ConsumeTrie(t *trie.Trie) (trie.Value, bool) {
+	if m, found := t.MatchLongestPrefixString(b.input[b.pos:]); found {
+		b.pos += m.PrefixLength
+		return m.Value, true
 	}
-	return false
+	return nil, false
 }
 
 func (b *Buffer) ConsumeRegexp(r *regexp.Regexp) bool {
